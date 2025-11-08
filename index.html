@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Char Count</title>
+<form id="f">
+  <textarea id="text" rows="6" cols="60" placeholder="ここに入力"></textarea><br>
+  <button>送信</button>
+</form>
+<pre id="out"></pre>
+<script>
+  const out = document.getElementById('out');
+  document.getElementById('f').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = document.getElementById('text').value || "";
+    const url = `/count?text=${encodeURIComponent(text)}`;
+    const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' }});
+    const data = await res.json();
+    out.textContent = JSON.stringify(data, null, 2);
+  });
+</script>
