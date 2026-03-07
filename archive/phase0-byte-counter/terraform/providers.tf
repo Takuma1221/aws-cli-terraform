@@ -8,13 +8,9 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    archive = {
-      source  = "hashicorp/archive"
-      version = "~> 2.0"
-    }
   }
 
-  # Stateファイルをローカルのサブフォルダで管理
+  # Stateファイルをサブフォルダで管理
   backend "local" {
     path = "state/terraform.tfstate"
   }
@@ -22,7 +18,8 @@ terraform {
 
 # --------------------------------------------------------------------------------
 # AWSプロバイダー設定
-# CloudFront / WAF は us-east-1 固定のサービスがあるため、このリージョンを使用します。
+# リソースを作成するリージョンを指定します。
+# CloudFrontの証明書 (ACM) やWAF (CloudFront用) は us-east-1 (バージニア北部) で作成する必要があります。
 # --------------------------------------------------------------------------------
 provider "aws" {
   region = "us-east-1"

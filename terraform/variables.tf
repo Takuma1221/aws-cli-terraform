@@ -1,25 +1,26 @@
 # --------------------------------------------------------------------------------
-# 変数定義
-# 環境ごとに変更する可能性のある値をここで定義します。
+# ルート変数定義
+# terraform.tfvars で値を上書きして使います。
 # --------------------------------------------------------------------------------
 
-# S3バケット名
-# 全世界で一意である必要があります。
 variable "bucket_name" {
-  description = "S3バケット名"
+  description = "S3 バケット名（全世界で一意である必要があります）"
   type        = string
 }
 
-# 許可するIPv4アドレス
-# CIDR形式 (例: "203.0.113.1/32") のリストで指定します。
 variable "allowed_ip_v4" {
-  description = "許可するIPv4アドレス (CIDR形式)"
+  description = "WAF で許可する IPv4 アドレス（CIDR形式のリスト）"
   type        = list(string)
 }
 
-# 許可するIPv6アドレス
-# CIDR形式 (例: "2001:db8::/64") のリストで指定します。
 variable "allowed_ip_v6" {
-  description = "許可するIPv6アドレス (CIDR形式)"
+  description = "WAF で許可する IPv6 アドレス（CIDR形式のリスト）"
   type        = list(string)
+  default     = []
+}
+
+variable "dynamodb_table_name" {
+  description = "DynamoDB テーブル名"
+  type        = string
+  default     = "todos"
 }

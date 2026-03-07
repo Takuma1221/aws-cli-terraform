@@ -1,19 +1,241 @@
-<!doctype html>
-<meta charset="utf-8">
-<title>Char Count</title>
-<form id="f">
-  <textarea id="text" rows="6" cols="60" placeholder="ここに入力"></textarea><br>
-  <button>送信</button>
-</form>
-<pre id="out"></pre>
-<script>
-  const out = document.getElementById('out');
-  document.getElementById('f').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = document.getElementById('text').value || "";
-    const url = `/count?text=${encodeURIComponent(text)}`;
-    const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' }});
-    const data = await res.json();
-    out.textContent = JSON.stringify(data, null, 2);
-  });
-</script>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TODO アプリ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    #app {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.08);
+      padding: 32px;
+      width: 100%;
+      max-width: 560px;
+      height: fit-content;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #1a1a2e;
+      margin-bottom: 24px;
+    }
+
+    #add-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    #new-todo {
+      flex: 1;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    #new-todo:focus { border-color: #4f46e5; }
+
+    #add-btn {
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    #add-btn:hover { background: #4338ca; }
+    #add-btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    #todo-list { list-style: none; }
+
+    #todo-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    #todo-list li:last-child { border-bottom: none; }
+
+    .todo-title {
+      flex: 1;
+      font-size: 1rem;
+      color: #374151;
+      word-break: break-all;
+    }
+
+    .delete-btn {
+      background: none;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: .85rem;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .delete-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+    .empty { color: #9ca3af; font-size: .95rem; padding: 16px 0 !important; }
+    .empty, .loading { border-bottom: none !important; }
+
+    #status {
+      margin-top: 16px;
+      font-size: .85rem;
+      color: #ef4444;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>📝 TODO リスト</h1>
+    <div id="add-form">
+      <input id="new-todo" type="text" placeholder="新しい TODO を入力..." maxlength="200" />
+      <button id="add-btn">追加</button>
+    </div>
+    <ul id="todo-list">
+      <li class="loading">読み込み中...</li>
+    </ul>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    // --------------------------------------------------------
+    // 起動時に /api-config.json を fetch して API URL を取得します。
+    // api-config.json は Terraform が API Gateway の URL を書き込んで
+    // S3 にアップロードします（terraform/main.tf 参照）。
+    // --------------------------------------------------------
+    let API_URL = '';
+
+    async function init() {
+      try {
+        const config = await fetch('/api-config.json').then(r => r.json());
+        API_URL = config.apiUrl;
+        await loadTodos();
+      } catch (_) {
+        showError('設定ファイルの読み込みに失敗しました。Terraform が正常に apply されているか確認してください。');
+      }
+    }
+
+    // ---- TODO 一覧の取得 ------------------------------------------------
+    async function loadTodos() {
+      try {
+        const res = await fetch(`${API_URL}/todos`);
+        if (!res.ok) throw new Error(res.statusText);
+        const todos = await res.json();
+        render(todos);
+      } catch (_) {
+        showError('TODO の取得に失敗しました。');
+      }
+    }
+
+    // ---- 一覧の描画 -----------------------------------------------------
+    function render(todos) {
+      const list = document.getElementById('todo-list');
+      if (!todos.length) {
+        list.innerHTML = '<li class="empty">まだ TODO はありません</li>';
+        return;
+      }
+      list.innerHTML = todos.map(t => `
+        <li>
+          <span class="todo-title">${escapeHtml(t.title)}</span>
+          <button class="delete-btn" data-id="${escapeAttr(t.id)}">削除</button>
+        </li>
+      `).join('');
+
+      list.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteTodo(btn.dataset.id));
+      });
+    }
+
+    // ---- TODO の追加 ----------------------------------------------------
+    document.getElementById('add-btn').addEventListener('click', async () => {
+      const input = document.getElementById('new-todo');
+      const title = input.value.trim();
+      if (!title) return;
+
+      const btn = document.getElementById('add-btn');
+      btn.disabled = true;
+      clearError();
+
+      try {
+        const res = await fetch(`${API_URL}/todos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || res.statusText);
+        }
+        input.value = '';
+        await loadTodos();
+      } catch (e) {
+        showError(`追加に失敗しました: ${e.message}`);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Enter キーでも送信
+    document.getElementById('new-todo').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('add-btn').click();
+    });
+
+    // ---- TODO の削除 ----------------------------------------------------
+    async function deleteTodo(id) {
+      clearError();
+      try {
+        const res = await fetch(`${API_URL}/todos/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) throw new Error(res.statusText);
+        await loadTodos();
+      } catch (_) {
+        showError('削除に失敗しました。');
+      }
+    }
+
+    // ---- ユーティリティ -------------------------------------------------
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      return String(str).replace(/"/g, '&quot;');
+    }
+
+    function showError(msg) {
+      document.getElementById('status').textContent = msg;
+    }
+
+    function clearError() {
+      document.getElementById('status').textContent = '';
+    }
+
+    init();
+  </script>
+</body>
+</html>

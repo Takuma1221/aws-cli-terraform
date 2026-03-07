@@ -1,3 +1,19 @@
-bucket_name   = "your-unique-bucket-name"
-allowed_ip_v4 = ["203.0.113.0/24"]
-allowed_ip_v6 = ["2001:db8::/32"]
+# terraform.tfvars.example
+# このファイルをコピーして terraform.tfvars を作成し、実際の値を入力してください。
+# terraform.tfvars は .gitignore に追加することを推奨します（IP アドレスが含まれるため）。
+#
+# cp terraform.tfvars.example terraform.tfvars
+
+# S3 バケット名（全世界で一意な名前にする）
+bucket_name = "your-todo-app-bucket-20260307"
+
+# WAF で許可する IP アドレス（あなたの IP を設定してください）
+# 確認コマンド: curl -4 ifconfig.me
+allowed_ip_v4 = ["0.0.0.0/32"]
+
+# IPv6 を使用する場合（不要なら空リストのまま）
+# 確認コマンド: curl -6 ifconfig.me
+allowed_ip_v6 = []
+
+# DynamoDB テーブル名（デフォルトのままでも OK）
+dynamodb_table_name = "todos"

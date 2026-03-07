@@ -1,12 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - ページが見つかりません</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .box {
+      text-align: center;
+      background: #fff;
+      border-radius: 12px;
+      padding: 48px 40px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.08);
+    }
+    h1 { font-size: 4rem; color: #4f46e5; margin-bottom: 8px; }
+    p  { color: #6b7280; margin-bottom: 24px; }
+    a  {
+      display: inline-block;
+      background: #4f46e5;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    a:hover { background: #4338ca; }
+  </style>
 </head>
 <body>
-    <h1>Error</h1>
-    <p>Sorry, an error has occurred.</p>
+  <div class="box">
+    <h1>404</h1>
+    <p>お探しのページは見つかりませんでした。</p>
+    <a href="/">トップへ戻る</a>
+  </div>
 </body>
 </html>

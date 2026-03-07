@@ -2,6 +2,7 @@
 # CloudFront Origin Access Control (OAC)
 # S3バケットへのアクセスをCloudFront経由のみに制限するための認証設定です。
 # 以前のOAI (Origin Access Identity) の後継機能で、よりセキュアで柔軟な設定が可能です。
+# 証明書を持たしているらしい
 # --------------------------------------------------------------------------------
 resource "aws_cloudfront_origin_access_control" "default" {
   name                              = "s3-oac-${var.bucket_name}"

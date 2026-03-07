@@ -1,14 +1,14 @@
 output "cloudfront_domain_name" {
-  description = "CloudFrontのドメイン名"
-  value       = aws_cloudfront_distribution.s3_distribution.domain_name
+  description = "CloudFront のドメイン名（ブラウザでアクセスする URL）"
+  value       = "https://${module.cloudfront.domain_name}"
 }
 
-output "cloudfront_distribution_id" {
-  description = "CloudFrontのディストリビューションID"
-  value       = aws_cloudfront_distribution.s3_distribution.id
+output "api_gateway_url" {
+  description = "API Gateway のエンドポイント URL"
+  value       = module.apigateway.api_endpoint
 }
 
 output "s3_bucket_name" {
-  description = "S3バケット名"
-  value       = aws_s3_bucket.website_bucket.id
+  description = "S3 バケット名"
+  value       = module.s3.bucket_id
 }
