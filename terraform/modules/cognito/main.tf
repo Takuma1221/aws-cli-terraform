@@ -57,8 +57,8 @@ resource "aws_cognito_user_pool_client" "main" {
   supported_identity_providers = ["COGNITO"]
 
   # ログイン後・ログアウト後にフロントへ戻す URL。
-  callback_urls                = var.callback_urls
-  logout_urls                  = var.logout_urls
+  callback_urls = var.callback_urls
+  logout_urls   = var.logout_urls
 }
 
 # Hosted UI 用のドメイン
