@@ -12,3 +12,18 @@ output "s3_bucket_name" {
   description = "S3 バケット名"
   value       = module.s3.bucket_id
 }
+
+output "cognito_user_pool_id" {
+  description = "Cognito User Pool ID"
+  value       = module.cognito.user_pool_id
+}
+
+output "cognito_user_pool_client_id" {
+  description = "Cognito User Pool Client ID"
+  value       = module.cognito.user_pool_client_id
+}
+
+output "cognito_hosted_ui_url" {
+  description = "Cognito Hosted UI のログイン URL"
+  value       = module.cognito.hosted_ui_url
+}

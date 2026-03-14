@@ -17,3 +17,16 @@ allowed_ip_v6 = []
 
 # DynamoDB テーブル名（デフォルトのままでも OK）
 dynamodb_table_name = "todos"
+
+# Cognito User Pool 名
+cognito_user_pool_name = "todo-users"
+
+# Cognito Hosted UI のドメイン prefix（未指定なら bucket_name を流用）
+cognito_domain_prefix = "your-todo-app-auth-20260314"
+
+# ログイン後のリダイレクト先
+# まずはローカル開発用の値を入れておき、CloudFront URL が確定したら置き換える
+cognito_callback_urls = ["http://localhost:3000"]
+
+# ログアウト後のリダイレクト先
+cognito_logout_urls = ["http://localhost:3000"]

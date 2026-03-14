@@ -62,6 +62,16 @@ module "dynamodb" {
   table_name = var.dynamodb_table_name
 }
 
+# --- Cognito モジュール ------------------------------------------------------
+# 認証基盤として User Pool / App Client / Hosted UI Domain を作成します。
+module "cognito" {
+  source               = "./modules/cognito"
+  user_pool_name       = var.cognito_user_pool_name
+  domain_prefix        = var.cognito_domain_prefix != "" ? var.cognito_domain_prefix : var.bucket_name
+  callback_urls        = var.cognito_callback_urls
+  logout_urls          = var.cognito_logout_urls
+}
+
 # --- Lambda モジュール -------------------------------------------------------
 # 3 つの Lambda 関数 (GET / POST / DELETE) と IAM ロールを担当します。
 module "lambda" {
@@ -88,7 +98,19 @@ module "apigateway" {
 resource "aws_s3_object" "api_config" {
   bucket       = module.s3.bucket_id
   key          = "api-config.json"
-  content      = jsonencode({ apiUrl = module.apigateway.api_endpoint })
+  content = jsonencode({
+    apiUrl               = module.apigateway.api_endpoint
+    cognitoUserPoolId    = module.cognito.user_pool_id
+    cognitoClientId      = module.cognito.user_pool_client_id
+    cognitoDomain        = module.cognito.domain
+    cognitoHostedUiUrl   = module.cognito.hosted_ui_url
+  })
   content_type = "application/json"
-  etag         = md5(jsonencode({ apiUrl = module.apigateway.api_endpoint }))
+  etag = md5(jsonencode({
+    apiUrl               = module.apigateway.api_endpoint
+    cognitoUserPoolId    = module.cognito.user_pool_id
+    cognitoClientId      = module.cognito.user_pool_client_id
+    cognitoDomain        = module.cognito.domain
+    cognitoHostedUiUrl   = module.cognito.hosted_ui_url
+  }))
 }

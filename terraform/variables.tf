@@ -24,3 +24,27 @@ variable "dynamodb_table_name" {
   type        = string
   default     = "todos"
 }
+
+variable "cognito_user_pool_name" {
+  description = "Cognito User Pool 名"
+  type        = string
+  default     = "todo-users"
+}
+
+variable "cognito_domain_prefix" {
+  description = "Cognito Hosted UI のドメイン prefix（一意である必要があります）"
+  type        = string
+  default     = ""
+}
+
+variable "cognito_callback_urls" {
+  description = "Cognito ログイン後のリダイレクト先 URL 一覧"
+  type        = list(string)
+  default     = ["http://localhost:3000"]
+}
+
+variable "cognito_logout_urls" {
+  description = "Cognito ログアウト後のリダイレクト先 URL 一覧"
+  type        = list(string)
+  default     = ["http://localhost:3000"]
+}
