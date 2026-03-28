@@ -14,8 +14,22 @@ resource "aws_apigatewayv2_api" "main" {
   cors_configuration {
     allow_origins = ["*"]
     allow_methods = ["GET", "POST", "DELETE", "OPTIONS"]
-    allow_headers = ["Content-Type"]
+    allow_headers = ["Content-Type", "Authorization"]
     max_age       = 300
+  }
+}
+
+data "aws_region" "current" {}
+
+resource "aws_apigatewayv2_authorizer" "cognito_jwt" {
+  api_id           = aws_apigatewayv2_api.main.id
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+  name             = "cognito-jwt-authorizer"
+
+  jwt_configuration {
+    audience = [var.cognito_user_pool_client_id]
+    issuer   = "https://cognito-idp.${data.aws_region.current.name}.amazonaws.com/${var.cognito_user_pool_id}"
   }
 }
 
@@ -38,9 +52,11 @@ resource "aws_apigatewayv2_integration" "get_todos" {
 }
 
 resource "aws_apigatewayv2_route" "get_todos" {
-  api_id    = aws_apigatewayv2_api.main.id
-  route_key = "GET /todos"
-  target    = "integrations/${aws_apigatewayv2_integration.get_todos.id}"
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "GET /todos"
+  target             = "integrations/${aws_apigatewayv2_integration.get_todos.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito_jwt.id
 }
 
 # API Gateway に Lambda を実行する権限を付与
@@ -64,9 +80,11 @@ resource "aws_apigatewayv2_integration" "post_todo" {
 }
 
 resource "aws_apigatewayv2_route" "post_todo" {
-  api_id    = aws_apigatewayv2_api.main.id
-  route_key = "POST /todos"
-  target    = "integrations/${aws_apigatewayv2_integration.post_todo.id}"
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "POST /todos"
+  target             = "integrations/${aws_apigatewayv2_integration.post_todo.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito_jwt.id
 }
 
 resource "aws_lambda_permission" "post_todo" {
@@ -90,9 +108,11 @@ resource "aws_apigatewayv2_integration" "delete_todo" {
 }
 
 resource "aws_apigatewayv2_route" "delete_todo" {
-  api_id    = aws_apigatewayv2_api.main.id
-  route_key = "DELETE /todos/{id}"
-  target    = "integrations/${aws_apigatewayv2_integration.delete_todo.id}"
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "DELETE /todos/{id}"
+  target             = "integrations/${aws_apigatewayv2_integration.delete_todo.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito_jwt.id
 }
 
 resource "aws_lambda_permission" "delete_todo" {

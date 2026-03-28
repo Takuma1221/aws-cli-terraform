@@ -90,6 +90,8 @@ module "apigateway" {
   lambda_get_todos_arn          = module.lambda.get_todos_arn
   lambda_post_todo_arn          = module.lambda.post_todo_arn
   lambda_delete_todo_arn        = module.lambda.delete_todo_arn
+  cognito_user_pool_id          = module.cognito.user_pool_id
+  cognito_user_pool_client_id   = module.cognito.user_pool_client_id
 }
 
 # --- API 設定ファイル (フロントエンド用) --------------------------------------
@@ -98,19 +100,24 @@ module "apigateway" {
 resource "aws_s3_object" "api_config" {
   bucket = module.s3.bucket_id
   key    = "api-config.json"
+  cache_control = "no-cache, no-store, must-revalidate"
   content = jsonencode({
-    apiUrl             = module.apigateway.api_endpoint
-    cognitoUserPoolId  = module.cognito.user_pool_id
-    cognitoClientId    = module.cognito.user_pool_client_id
-    cognitoDomain      = module.cognito.domain
-    cognitoHostedUiUrl = module.cognito.hosted_ui_url
+    apiUrl              = module.apigateway.api_endpoint
+    cognitoUserPoolId   = module.cognito.user_pool_id
+    cognitoClientId     = module.cognito.user_pool_client_id
+    cognitoDomain       = module.cognito.domain
+    cognitoHostedUiUrl  = module.cognito.hosted_ui_url
+    cognitoCallbackUrls = var.cognito_callback_urls
+    cognitoLogoutUrls   = var.cognito_logout_urls
   })
   content_type = "application/json"
   etag = md5(jsonencode({
-    apiUrl             = module.apigateway.api_endpoint
-    cognitoUserPoolId  = module.cognito.user_pool_id
-    cognitoClientId    = module.cognito.user_pool_client_id
-    cognitoDomain      = module.cognito.domain
-    cognitoHostedUiUrl = module.cognito.hosted_ui_url
+    apiUrl              = module.apigateway.api_endpoint
+    cognitoUserPoolId   = module.cognito.user_pool_id
+    cognitoClientId     = module.cognito.user_pool_client_id
+    cognitoDomain       = module.cognito.domain
+    cognitoHostedUiUrl  = module.cognito.hosted_ui_url
+    cognitoCallbackUrls = var.cognito_callback_urls
+    cognitoLogoutUrls   = var.cognito_logout_urls
   }))
 }
