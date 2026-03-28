@@ -12,7 +12,9 @@
 - 実処理: Lambda (Python)
 - データ保存: DynamoDB
 
-現在の TODO アプリは「認証なし / 全員共通 TODO」の状態。
+現在の TODO アプリは「Cognito でログインし、API Gateway でも JWT を検証する」状態まで進んでいる。
+
+ただし TODO データ自体はまだ全員共通で、ユーザーごとの分離は未実装。
 
 ## ここまでに理解したこと
 
@@ -99,20 +101,22 @@
 
 ### Phase 2: フロントからログインできるようにする
 
-これからやること:
+実装済みの内容:
 
 - `website/index.html` にログイン導線を追加
-- Hosted UI に遷移できるようにする
-- ログイン後のトークンをフロントで受け取る
-- `Authorization` ヘッダ付きで API を呼べるようにする
+- Hosted UI に遷移できるようにした
+- ログイン後の token をブラウザで受け取れるようにした
+- `Authorization` ヘッダ付きで API を呼べるようにした
+- 分かりやすいように callback 用画面 / logout 完了画面も追加した
 
 ### Phase 3: API Gateway に JWT Authorizer を付ける
 
-これからやること:
+実装済みの内容:
 
 - Cognito の User Pool / Client を参照する JWT Authorizer を追加
-- `GET /todos`, `POST /todos`, `DELETE /todos/{id}` に認証を必須化する
-- 認証されていないリクエストは API Gateway で落とす
+- `GET /todos`, `POST /todos`, `DELETE /todos/{id}` に認証を必須化した
+- 認証されていないリクエストは API Gateway で落ちるようにした
+- CORS で `Authorization` ヘッダも許可した
 
 ### Phase 4: DynamoDB をユーザー単位設計に変更する
 
@@ -131,13 +135,22 @@
 - `post_todo.py` で `user_id` を保存する
 - `delete_todo.py` で自分の TODO のみ削除できるようにする
 
-## 直近でやるべきこと
+## 次にやるべきこと
 
 優先順は次の通り。
 
-1. Phase 1 の Terraform 差分を `plan` / `apply` できる状態にする
-2. Cognito モジュールの outputs とルート配線を理解する
-3. Phase 2 のフロント実装に入る
+1. Phase 3 の動作確認として、未ログイン時に API が 401 になることを確認する
+2. Phase 4 として DynamoDB を `user_id` 単位の設計へ変更する
+3. Phase 5 として Lambda で JWT claims からユーザー ID を取り、自分の TODO だけを扱うようにする
+
+## その先のステップ
+
+このドキュメントでは次のステップもすでに定義している。
+
+- Phase 4: DynamoDB をユーザー単位設計へ変更する
+- Phase 5: Lambda をユーザー対応に変更する
+
+つまり、Phase 3 の次にどこへ進むかはこのファイルの Phase 4 / Phase 5 節を見れば追える。
 
 ## 補足メモ
 

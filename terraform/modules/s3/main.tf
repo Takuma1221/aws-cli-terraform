@@ -33,3 +33,19 @@ resource "aws_s3_object" "error_html" {
   content_type = "text/html"
   etag         = filemd5("${path.root}/../website/error.html")
 }
+
+resource "aws_s3_object" "auth_callback_html" {
+  bucket       = aws_s3_bucket.website.bucket
+  key          = "auth/callback.html"
+  source       = "${path.root}/../website/auth-callback.html"
+  content_type = "text/html"
+  etag         = filemd5("${path.root}/../website/auth-callback.html")
+}
+
+resource "aws_s3_object" "logout_html" {
+  bucket       = aws_s3_bucket.website.bucket
+  key          = "logout.html"
+  source       = "${path.root}/../website/logout.html"
+  content_type = "text/html"
+  etag         = filemd5("${path.root}/../website/logout.html")
+}

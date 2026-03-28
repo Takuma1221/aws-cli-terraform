@@ -25,8 +25,8 @@ cognito_user_pool_name = "todo-users"
 cognito_domain_prefix = "your-todo-app-auth-20260314"
 
 # ログイン後のリダイレクト先
-# まずはローカル開発用の値を入れておき、CloudFront URL が確定したら置き換える
-cognito_callback_urls = ["http://localhost:3000"]
+# 分かりやすくするため、専用の callback 画面へ戻す想定
+cognito_callback_urls = ["http://localhost:3000/auth/callback.html"]
 
 # ログアウト後のリダイレクト先
-cognito_logout_urls = ["http://localhost:3000"]
+cognito_logout_urls = ["http://localhost:3000/logout.html"]
