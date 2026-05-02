@@ -502,9 +502,29 @@
       }
     });
 
+    // IME 変換中の Enter は送信ではなく確定に使われるので無視する
+    let isComposingTodoInput = false;
+    const newTodoInput = document.getElementById('new-todo');
+
+    newTodoInput.addEventListener('compositionstart', () => {
+      isComposingTodoInput = true;
+    });
+
+    newTodoInput.addEventListener('compositionend', () => {
+      isComposingTodoInput = false;
+    });
+
     // Enter キーでも送信
-    document.getElementById('new-todo').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('add-btn').click();
+    newTodoInput.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') {
+        return;
+      }
+
+      if (isComposingTodoInput || e.isComposing || e.keyCode === 229) {
+        return;
+      }
+
+      document.getElementById('add-btn').click();
     });
 
     // ---- TODO の削除 ----------------------------------------------------
