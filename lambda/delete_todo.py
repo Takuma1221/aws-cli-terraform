@@ -16,9 +16,13 @@ UUID_PATTERN = re.compile(
 def handler(event, context):
     """
     DELETE /todos/{id}
-    指定した ID の TODO を DynamoDB から削除します。
+    ログインユーザー自身の TODO を DynamoDB から削除します。
     """
     try:
+        user_id = _get_user_id(event)
+        if not user_id:
+            return _response(401, {'error': 'Unauthorized'})
+
         todo_id = (event.get('pathParameters') or {}).get('id', '')
 
         # --- バリデーション ---
@@ -31,8 +35,11 @@ def handler(event, context):
         # --- DynamoDB から削除 ---
         # ConditionExpression で「存在する場合のみ削除」を保証します
         table.delete_item(
-            Key={'id': todo_id},
-            ConditionExpression='attribute_exists(id)',
+            Key={
+                'user_id': user_id,
+                'todo_id': todo_id,
+            },
+            ConditionExpression='attribute_exists(user_id) AND attribute_exists(todo_id)',
         )
 
         return _response(200, {'message': f'Todo {todo_id} を削除しました'})
@@ -46,6 +53,11 @@ def handler(event, context):
     except Exception as e:
         print(f"Error: {e}")
         return _response(500, {'error': 'Internal server error'})
+
+
+def _get_user_id(event):
+    claims = (((event.get('requestContext') or {}).get('authorizer') or {}).get('jwt') or {}).get('claims') or {}
+    return claims.get('sub')
 
 
 def _response(status_code, body):

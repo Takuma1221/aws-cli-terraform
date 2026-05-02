@@ -33,7 +33,7 @@ resource "aws_iam_role_policy" "dynamodb_access" {
     Statement = [{
       Effect = "Allow"
       Action = [
-        "dynamodb:Scan",       # TODO 一覧取得
+        "dynamodb:Query",      # 自分の TODO 一覧取得
         "dynamodb:PutItem",    # TODO 作成
         "dynamodb:DeleteItem", # TODO 削除
       ]

@@ -12,9 +12,12 @@
 - 実処理: Lambda (Python)
 - データ保存: DynamoDB
 
-現在の TODO アプリは「Cognito でログインし、API Gateway でも JWT を検証する」状態まで進んでいる。
+現在の TODO アプリは、ユーザーごとに TODO を分離する設計まで進んでいる。
 
-ただし TODO データ自体はまだ全員共通で、ユーザーごとの分離は未実装。
+- Cognito でログインできる
+- API Gateway が JWT を検証する
+- DynamoDB は user_id 単位の設計になっている
+- Lambda は JWT claims の user_id を使って自分の TODO だけを扱う
 
 ## ここまでに理解したこと
 
@@ -59,9 +62,9 @@
 ### DynamoDB
 
 - DynamoDB は RDB ではなく NoSQL
-- 今のテーブルは最小構成で、パーティションキーは `id`
+- 今のテーブルは `user_id` をパーティションキー、`todo_id` をソートキーにした複合キー構成
 - `scan()` は全件走査、`query()` はキーを使った効率的取得
-- 今の TODO アプリでは学習用に `scan()` を使っている
+- 今の TODO アプリでは自分の TODO 取得に `query()` を使っている
 
 ### Cognito
 
@@ -120,37 +123,36 @@
 
 ### Phase 4: DynamoDB をユーザー単位設計に変更する
 
-これからやること:
+実装済みの内容:
 
-- テーブル設計を見直す
-- `scan()` 前提ではなく `query()` 前提に寄せる
-- 例: `user_id` をパーティションキー、`todo_id` をソートキーにする
+- テーブル設計を `user_id` + `todo_id` の複合キーへ変更した
+- `scan()` 前提ではなく `query()` 前提へ切り替えた
+- 自分の TODO だけ取得しやすい構造にした
 
 ### Phase 5: Lambda をユーザー対応に変更する
 
-これからやること:
+実装済みの内容:
 
-- JWT claims からユーザー ID を取得する
-- `get_todos.py` を `scan()` から `query()` に変更する
-- `post_todo.py` で `user_id` を保存する
-- `delete_todo.py` で自分の TODO のみ削除できるようにする
+- JWT claims からユーザー ID を取得するようにした
+- `get_todos.py` を `scan()` から `query()` に変更した
+- `post_todo.py` で `user_id` を保存するようにした
+- `delete_todo.py` で自分の TODO のみ削除できるようにした
 
 ## 次にやるべきこと
 
 優先順は次の通り。
 
-1. Phase 3 の動作確認として、未ログイン時に API が 401 になることを確認する
-2. Phase 4 として DynamoDB を `user_id` 単位の設計へ変更する
-3. Phase 5 として Lambda で JWT claims からユーザー ID を取り、自分の TODO だけを扱うようにする
+1. Terraform apply 後に、ユーザーごとに TODO が分離されることを確認する
+2. 別ユーザーを作って、自分の TODO しか見えないことを確認する
+3. 必要なら TODO の更新機能や完了状態変更を追加する
 
 ## その先のステップ
 
-このドキュメントでは次のステップもすでに定義している。
+このドキュメントでは次のステップとして、機能拡張と検証の方向を追っていく。
 
-- Phase 4: DynamoDB をユーザー単位設計へ変更する
-- Phase 5: Lambda をユーザー対応に変更する
-
-つまり、Phase 3 の次にどこへ進むかはこのファイルの Phase 4 / Phase 5 節を見れば追える。
+- 複数ユーザーでの分離確認
+- TODO 更新機能の追加
+- 必要なら GSI や完了状態での絞り込み
 
 ## 補足メモ
 
